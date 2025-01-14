@@ -1,3 +1,15 @@
+## Prerequisites
+
+PostgreSQL 13.
+
+python version 11.9.
+
+```bash
+pip install -r requirements.txt
+
+python manage.py migrate
+```
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
