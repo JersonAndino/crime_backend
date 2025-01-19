@@ -3,6 +3,14 @@ from api.serializers import TopicoSerializer, ParroquiaSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_201_CREATED
+from .models import Archivo
+from django.utils.timezone import now
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.db.models import Sum, F
 from dateutil.relativedelta import relativedelta
@@ -267,3 +275,29 @@ class GetHechosForComparative(APIView):
                 }
             }
         )
+
+class FileUploadAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        tipo = request.data.get('type')
+
+        if not file or not tipo:
+            return Response({'error': 'Faltan campos requeridos: archivo o tipo'}, status=HTTP_400_BAD_REQUEST)
+
+        if tipo not in dict(Archivo.TIPOS).keys():
+            return Response({'error': 'Tipo de archivo no válido'}, status=HTTP_400_BAD_REQUEST)
+
+        archivo = Archivo(
+            usuario_creacion=request.user,
+            archivo=file,
+            tipo=tipo,
+            usuario_carga=request.user,
+            fecha_carga=now(),
+        )
+
+        archivo.save()
+
+        return Response({'message': 'Archivo subido exitosamente'}, status=HTTP_201_CREATED)

@@ -10,4 +10,5 @@ urlpatterns = [
     path('hechos_distribucion/', views.GetHechosForDistribution.as_view(), name='hechos_distribucion'),
     path('hechos_analitica/', views.GetHechosForAnalitics.as_view(), name='hechos_analitics'),
     path('hechos_comparativa/', views.GetHechosForComparative.as_view(), name='hechos_comparative'),
+    path('upload/', views.FileUploadAPIView.as_view(), name='file_upload'),
 ]
