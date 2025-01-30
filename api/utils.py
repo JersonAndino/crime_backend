@@ -11,13 +11,13 @@ def process_row_topico(row):
     return Topico(codigo = row['codigo'], nombre = row['nombre'], descripcion = row['descripcion'])
 
 def process_row_parroquia(row):
-    return Parroquia(codigo = row['codigo'], nombre = row['nombre'])
+    return Parroquia(codigo = row['codigo'], nombre = row['nombre'], descripcion = row['descripcion'])
 
 def process_row_hecho(row, fechas, parroquias, topicos):
     fecha = fechas.get(str(row['fecha']))
     fecha_key = str(row['fecha'])
     parroquia = parroquias.get(row['parroquia'])
-    topico = topicos.get(row['topico'])
+    topico = topicos.get(int(row['topico']) if row['topico'] != 'Other' else 20)
     return HechoTopico(fecha = fecha, parroquia = parroquia, topico = topico, total_tweets = row['total'])
 
 def load_data_desde_csv(path, model):
@@ -28,7 +28,7 @@ def load_data_desde_csv(path, model):
             create = df.apply(process_row_topico, axis=1).to_list()
             Topico.objects.bulk_create(create)
         elif model == Parroquia:
-            df.columns = ['codigo', 'nombre']
+            df.columns = ['codigo', 'nombre', 'descripcion']
             create = df.apply(process_row_parroquia, axis=1).to_list()
             Parroquia.objects.bulk_create(create)
         elif model == HechoTopico:

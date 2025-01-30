@@ -84,7 +84,7 @@ class GetHechosForMap(APIView):
             (ultima_fecha - primera_fecha).days if primera_fecha and ultima_fecha else 0
         )
 
-        parroquias_counts = hechos_qs.values(codigo=F("parroquia__codigo")).annotate(
+        parroquias_counts = hechos_qs.exclude(parroquia__codigo = 0).values(codigo=F("parroquia__codigo")).annotate(
             total=Sum("total_tweets")
         )
         total = (hechos_qs.aggregate(total=Sum("total_tweets"))).get("total")

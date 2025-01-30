@@ -57,6 +57,18 @@ class HechoTopico(models.Model):
 
     def __str__(self):
         return str(self.total_tweets)
+    
+class HechoGeneral(models.Model):
+    fecha = models.ForeignKey('Fecha', on_delete=models.CASCADE, blank=True, null=True)
+    topico = models.ForeignKey('Topico', on_delete=models.CASCADE, blank=True, null=True)
+    total_tweets = models.IntegerField()
+    
+    class Meta:
+        verbose_name = 'Hecho General'
+        verbose_name_plural = 'Hechos Generales'
+
+    def __str__(self):
+        return str(self.total_tweets)
 
 class AuditMixin(models.Model):
     usuario_creacion = models.ForeignKey(User, null=True, blank=True,related_name='%(class)s_usuario_creacion',
