@@ -20,14 +20,14 @@ import pandas as pd
 
 class GetTopicos(APIView):
     def get(self, request):
-        qs = Topico.objects.all()
+        qs = Topico.objects.all().order_by('codigo')
         serializer = TopicoSerializer(qs, many=True)
         return Response({"data": serializer.data})
 
 
 class GetParroquias(APIView):
     def get(self, request):
-        qs = Parroquia.objects.all()
+        qs = Parroquia.objects.all().order_by('codigo')
         serializer = ParroquiaSerializer(qs, many=True)
         return Response({"data": serializer.data})
 
@@ -47,12 +47,12 @@ class GetHechosForMap(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         fecha_inicio = (
-            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%m-%d").date()
             if len(data.get("fecha_inicio")) > 0
             else None
         )
         fecha_fin = (
-            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%m-%d").date()
             if len(data.get("fecha_fin")) > 0
             else None
         )
@@ -74,7 +74,6 @@ class GetHechosForMap(APIView):
                 fecha__fecha_completa__gte=fecha_inicio,
                 fecha__fecha_completa__lte=fecha_fin,
             )
-
         primer_hecho = hechos_qs.order_by("fecha__fecha_completa").first()
         ultimo_hecho = hechos_qs.order_by("fecha__fecha_completa").last()
         primera_fecha = primer_hecho.fecha.fecha_completa if primer_hecho else None
@@ -83,15 +82,19 @@ class GetHechosForMap(APIView):
         num_dias = (
             (ultima_fecha - primera_fecha).days if primera_fecha and ultima_fecha else 0
         )
-
+        parroquias_qs = hechos_qs.exclude(parroquia__codigo=0)
+        no_parroquias_qs = hechos_qs.filter(parroquia__codigo=0)
+        
         parroquias_counts = hechos_qs.exclude(parroquia__codigo = 0).values(codigo=F("parroquia__codigo")).annotate(
             total=Sum("total_tweets")
         )
-        total = (hechos_qs.aggregate(total=Sum("total_tweets"))).get("total")
+        total_parroquias = (parroquias_qs.aggregate(total=Sum("total_tweets"))).get("total")
+        total = (no_parroquias_qs.aggregate(total=Sum("total_tweets"))).get("total")
         return Response(
             {
                 "data": {
                     "parroquias_counts": list(parroquias_counts),
+                    "total_parroquias": total_parroquias,
                     "total": total,
                     "num_dias": num_dias,
                 }
@@ -105,12 +108,12 @@ class GetHechosForDistribution(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         fecha_inicio = (
-            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%m-%d").date()
             if len(data.get("fecha_inicio")) > 0
             else None
         )
         fecha_fin = (
-            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%m-%d").date()
             if len(data.get("fecha_fin")) > 0
             else None
         )
@@ -134,7 +137,7 @@ class GetHechosForDistribution(APIView):
                 fecha__fecha_completa__lte=fecha_fin,
             )
 
-        topicos_counts = hechos_qs.values(codigo=F("topico__codigo")).annotate(
+        topicos_counts = hechos_qs.order_by('topico__codigo').values(codigo=F("topico__codigo")).annotate(
             total=Sum("total_tweets")
         )
         total = (hechos_qs.aggregate(total=Sum("total_tweets"))).get("total")
@@ -155,12 +158,12 @@ class GetHechosForAnalitics(APIView):
     def post(self, request, *args, **kwargs):
         data = request.data
         fecha_inicio = (
-            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_inicio"), "%Y-%m-%d").date()
             if len(data.get("fecha_inicio")) > 0
             else None
         )
         fecha_fin = (
-            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%M-%d").date()
+            datetime.datetime.strptime(data.get("fecha_fin"), "%Y-%m-%d").date()
             if len(data.get("fecha_fin")) > 0
             else None
         )
